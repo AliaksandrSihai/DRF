@@ -1,0 +1,26 @@
+[
+    {
+        "model": "study_platform.payments",
+        "pk": 1,
+        "fields": {
+            "user": null,
+            "payments_date": "2023-10-26",
+            "payed_lesson": null,
+            "payed_course": 1,
+            "amount": 1000,
+            "payments_ways": "наличные"
+        }
+    },
+    {
+        "model": "study_platform.payments",
+        "pk": 2,
+        "fields": {
+            "user": null,
+            "payments_date": "2023-10-25",
+            "payed_lesson": 2,
+            "payed_course": null,
+            "amount": 500,
+            "payments_ways": "перевод на счет"
+        }
+    }
+]

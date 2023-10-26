@@ -1,11 +1,18 @@
 from rest_framework import serializers
 
+from study_platform.serializers import PaymentsSerializer
 from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
     """ Сериалайзер для пользователя """
+    payments_history = serializers.SerializerMethodField()
+
+    def get_payments_history(self, instance):
+        payments = instance.user.all()  # Assuming 'payments' is the related name
+        return PaymentsSerializer(payments, many=True).data
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('email', 'password', 'city', 'payments_history')
+
