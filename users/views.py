@@ -1,7 +1,9 @@
 from rest_framework import viewsets
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from study_platform.permissions import IsModerator, IsOwner
 from users.models import User
 from users.serializers import UserSerializer, UserShortSerializer
 
@@ -12,28 +14,16 @@ class UserViewSet(viewsets.ModelViewSet):
 
     serializer_class = UserSerializer
     queryset = User.objects.all()
-
-    def update(self, request, *args, **kwargs):
-        if request.user:
-            return super().update(request, *args, **kwargs)
-        return PermissionDenied()
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = super().retrieve(request, *args, **kwargs)
-        if request.user:
-            serializer = UserShortSerializer(instance)
-            return Response(serializer.data)
-        return PermissionDenied()
+    permission_classes = [IsAuthenticated, IsModerator | IsOwner]
 
     def list(self, request, *args, **kwargs):
-        instance = super().list(request, *args, **kwargs)
-        if request.user:
-            serializer = UserShortSerializer(instance, many=True)
+        queryset = self.get_queryset()
+        if request.user.is_staff:
+            serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
-        return PermissionDenied()
+        else:
+            serializer = UserShortSerializer(queryset, many=True)
+            return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
-        if request.user:
-            return super().destroy(request, *args, **kwargs)
-        return PermissionDenied()
+
 
