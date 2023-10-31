@@ -16,3 +16,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'password', 'city', 'payments_history')
 
+
+class UserShortSerializer(serializers.ModelSerializer):
+    """ Сериалайзер для вывода только публичной информации """
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'email', 'city')
