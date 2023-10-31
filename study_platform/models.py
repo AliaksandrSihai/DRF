@@ -1,6 +1,7 @@
 from django.db import models
 
 import users.models
+from config import settings
 
 NULLABLE = {
     'blank': True,
@@ -15,6 +16,8 @@ class Course(models.Model):
     preview = models.ImageField(upload_to='study_platform/course/', verbose_name='картинка', **NULLABLE)
     description = models.TextField(verbose_name='описание')
     lessons = models.ManyToManyField(to='Lesson', related_name='lessons')
+    owner = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь',
+                              **NULLABLE)
 
     def __str__(self):
         return f'{self.name}'
@@ -31,6 +34,8 @@ class Lesson(models.Model):
     preview = models.ImageField(upload_to='study_platform/lesson/', verbose_name='картинка', **NULLABLE)
     description = models.TextField(verbose_name='описание')
     url_video = models.URLField(verbose_name='ссылка на видео', **NULLABLE)
+    owner = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь',
+                              **NULLABLE)
 
     def __str__(self):
         return f'{self.name}'
