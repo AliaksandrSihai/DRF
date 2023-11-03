@@ -5,7 +5,7 @@ from study_platform import views
 
 router = DefaultRouter()
 router.register(r'course', views.CourseViewSet, basename='course')
-
+router.register(r'subscribe', views.SubscribeViewSet, basename='subscribe')
 app_name = StudyPlatformConfig.name
 
 urlpatterns = [
