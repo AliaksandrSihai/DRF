@@ -18,6 +18,7 @@ class Course(models.Model):
     lessons = models.ManyToManyField(to='Lesson', related_name='lessons')
     owner = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь',
                               **NULLABLE)
+    price = models.PositiveIntegerField(verbose_name='стоимость', default=0, **NULLABLE)
 
     def __str__(self):
         return f'{self.name}'
@@ -36,6 +37,8 @@ class Lesson(models.Model):
     url_video = models.URLField(verbose_name='ссылка на видео', **NULLABLE)
     owner = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь',
                               **NULLABLE)
+    price = models.PositiveIntegerField(verbose_name='стоимость', default=0, **NULLABLE)
+
 
     def __str__(self):
         return f'{self.name}'
@@ -56,13 +59,15 @@ class Payments(models.Model):
     user = models.ForeignKey(to=users.models.User, on_delete=models.DO_NOTHING, **NULLABLE, verbose_name='пользователь',
                              related_name='user')
     payments_date = models.DateField(auto_now_add=True, verbose_name='дата платежа')
-    payed_lesson = models.ForeignKey(to=Lesson, on_delete=models.CASCADE, verbose_name='оплаченный урок', **NULLABLE)
-    payed_course = models.ForeignKey(to=Course, on_delete=models.CASCADE, verbose_name='оплаченный курс', **NULLABLE)
-    amount = models.PositiveIntegerField(verbose_name='сумма оплаты')
+    payed_lesson = models.ForeignKey(to=Lesson, on_delete=models.CASCADE, verbose_name='оплаченный урок',
+                                     related_name='lesson', **NULLABLE)
+    payed_course = models.ForeignKey(to=Course, on_delete=models.CASCADE, verbose_name='оплаченный курс',
+                                     related_name='course', **NULLABLE)
     payments_ways = models.CharField(max_length=30, choices=ways_to_payment, verbose_name='способ оплаты')
+    stripe_id = models.CharField(max_length=40, verbose_name='id платежа на stripe.com', **NULLABLE)
 
     def __str__(self):
-        return f'{self.user}{self.amount}'
+        return f'{self.user}'
 
     class Meta:
         verbose_name = 'платёж'

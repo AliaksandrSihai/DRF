@@ -29,7 +29,7 @@ class TestUpdateLesson(APITestCase):
         response = self.client.get(reverse('study_platform:lesson_all'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_part_update_lesson(self):
+    def test_patch_update_lesson(self):
         data = {
             'name': 'name_test'
         }
@@ -39,7 +39,7 @@ class TestUpdateLesson(APITestCase):
         self.assertEqual(lesson.name, 'name_test')
         self.assertEqual(lesson.description, 'test_description')
 
-    def test_full_update_lesson(self):
+    def test_put_update_lesson(self):
 
         data = {
                 'name': 'name_test',

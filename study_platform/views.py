@@ -8,7 +8,7 @@ from study_platform.models import Course, Lesson, Payments, Subscribe
 from study_platform.paginators import ListPaginator
 from study_platform.permissions import IsModerator, IsOwner, IsSuperUser
 from study_platform.serializers import CourseSerializer, LessonSerializer, PaymentsSerializer, SubscribeSerializer
-from study_platform.service import send_message
+from study_platform.service import send_message, create_payment
 from users.models import User
 
 
@@ -30,12 +30,13 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         data = serializer.data.get('subscribe')
-        for d in data:
-            to_email = User.objects.get(pk=d['user'])
-            send_message(subject="Обновление курса",
-                         message="Курс был обновлен",
-                         recipient_list=[to_email.email]
-                        )
+        if data:
+            for d in data:
+                to_email = User.objects.get(pk=d['user'])
+                send_message(subject="Обновление курса",
+                             message="Курс был обновлен",
+                             recipient_list=[to_email.email]
+                            )
         return super().update(serializer)
 
     def list(self, request, *args, **kwargs):
@@ -115,6 +116,35 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated, IsModerator | IsOwner | IsSuperUser]
 
 
+class PaymentsCreateAPIView(generics.CreateAPIView):
+    """ Создание платежа """
+    serializer_class = PaymentsSerializer
+
+    def perform_create(self, serializer):
+        data_course = Course.objects.get(pk=self.request.data['payed_course'])
+        if data_course is not None:
+            id_strip = create_payment(data_course.price)
+        else:
+            data_lesson = Lesson.objects.get(pk=[self.request.data['payed_lesson']])
+            id_strip = create_payment(data_lesson.price)
+
+        new_payment = serializer.save()
+        new_payment.user = self.request.user
+        new_payment.stripe_id = id_strip
+        new_payment.save()
+
+
+class PaymentsRetrieveAPIView(generics.RetrieveAPIView):
+    """ Получение платежа """
+    serializer_class = PaymentsSerializer
+    queryset = Payments.objects.all()
+
+    # def get(self, request, *args, **kwargs):
+    #     return super().get(request, *args, **kwargs)
+
+
+
+
 class PaymentsListAPIView(generics.ListAPIView):
     """ Класс для вывода платежей """
 
@@ -122,6 +152,7 @@ class PaymentsListAPIView(generics.ListAPIView):
     serializer_class = PaymentsSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('payments_date', 'payed_lesson', 'payed_course', 'payments_ways')
+
 
 
 class SubscribeViewSet(viewsets.ModelViewSet):
@@ -139,3 +170,8 @@ class SubscribeViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(user=self.request.user)
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
+
+
+class CourseAPIListView(generics.ListAPIView):
+    serializer_class = CourseSerializer
+    queryset = Course.objects.all()
