@@ -41,11 +41,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drf_yasg',
 
+    'drf_yasg',
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
+    'django_celery_beat',
+
 
     'study_platform',
     'users',
@@ -168,7 +170,15 @@ EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL')
 
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_CUSTOMER = os.getenv('STRIPE_CUSTOMER')
-# CUSTOMER = stripe.Customer.retrieve(
-#   os.getenv('STRIPE_CUSTOMER'),
-#   stripe_account=os.getenv('STRIPE_ACCOUNT')
-# )
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+
+CELERY_BEAT_SCHEDULE = {
+    'check_user': {
+        'task': 'study_platform.tasks.check_user',
+        'schedule': timedelta(days=1),
+    },
+}
+

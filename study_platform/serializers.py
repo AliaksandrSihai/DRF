@@ -28,12 +28,13 @@ class CourseSerializer(serializers.ModelSerializer):
     lesson_count = serializers.SerializerMethodField(read_only=True)
     lessons = LessonSerializer(many=True, read_only=True)
     subscribe = SubscribeSerializer(many=True, read_only=True)
+    #subscribe = serializers.SerializerMethodField(many=True, read_only=True)
 
     def get_lesson_count(self, instance):
         return instance.lessons.count()
 
-    def get_subscribe(self, instance):
-        return instance.subscribe.user.email
+    # def get_subscribe(self, instance):
+    #     return instance.subscribe.user.email
 
     class Meta:
         model = Course

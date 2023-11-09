@@ -1,6 +1,25 @@
+import json
+from datetime import datetime, timedelta
+
 from django.core.mail import send_mail
 import requests
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+
 from config import settings
+
+
+def scheduled(*args, **kwargs):
+    schedule, created = IntervalSchedule.objects.get_or_create(
+        every=1,
+        period=IntervalSchedule.MINUTES,
+    )
+    PeriodicTask.objects.create(
+        interval=schedule,
+        name='Check users',
+        task='study_platform.tasks.send_update',
+        args=['sigai.aleksandr@mail.ru'],
+        expires=datetime.utcnow() + timedelta(days=1)
+    )
 
 
 def send_message(subject: str, message: str, recipient_list: list):
@@ -11,7 +30,7 @@ def send_message(subject: str, message: str, recipient_list: list):
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=recipient_list
         )
-    return True
+
 
 
 def create_payment(instance):

@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from rest_framework import viewsets, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import PermissionDenied
@@ -9,6 +11,7 @@ from study_platform.paginators import ListPaginator
 from study_platform.permissions import IsModerator, IsOwner, IsSuperUser
 from study_platform.serializers import CourseSerializer, LessonSerializer, PaymentsSerializer, SubscribeSerializer
 from study_platform.service import send_message, create_payment
+from study_platform.tasks import send_update
 from users.models import User
 
 
@@ -28,22 +31,26 @@ class CourseViewSet(viewsets.ModelViewSet):
             new_course.owner = self.request.user
             new_course.save()
 
+    # def perform_update(self, serializer):
+    #     return super().perform_update(serializer)
+
     def perform_update(self, serializer):
+        super().perform_update(serializer)
         data = serializer.data.get('subscribe')
-        if data:
+        last_date = datetime.fromisoformat(serializer.data.get('last_update')).replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        difference = now - last_date
+        if data and difference.total_seconds() > 4 * 60 * 60:
             for d in data:
                 to_email = User.objects.get(pk=d['user'])
-                send_message(subject="Обновление курса",
-                             message="Курс был обновлен",
-                             recipient_list=[to_email.email]
-                            )
-        return super().update(serializer)
+                send_update.delay(to_email.email)
+
+
+
 
     def list(self, request, *args, **kwargs):
-        print("list method called")
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
-        print("queryset:", queryset)
         if request.user.is_staff:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
