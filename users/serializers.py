@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
     payments_history = serializers.SerializerMethodField()
 
     def get_payments_history(self, instance):
-        payments = instance.user.all()  # Assuming 'payments' is the related name
+        payments = instance.user.all()
         return PaymentsSerializer(payments, many=True).data
 
     class Meta:

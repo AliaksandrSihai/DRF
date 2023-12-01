@@ -1,4 +1,3 @@
-import re
 from rest_framework.validators import ValidationError
 
 ALLOW_URL = 'www.youtube.com'

@@ -7,6 +7,7 @@ NULLABLE = {
     'null': True,
             }
 
+
 class User(AbstractUser):
     """Модель для пользователя"""
 

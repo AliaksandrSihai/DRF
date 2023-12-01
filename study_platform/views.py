@@ -31,9 +31,6 @@ class CourseViewSet(viewsets.ModelViewSet):
             new_course.owner = self.request.user
             new_course.save()
 
-    # def perform_update(self, serializer):
-    #     return super().perform_update(serializer)
-
     def perform_update(self, serializer):
         super().perform_update(serializer)
         data = serializer.data.get('subscribe')
@@ -44,9 +41,6 @@ class CourseViewSet(viewsets.ModelViewSet):
             for d in data:
                 to_email = User.objects.get(pk=d['user'])
                 send_update.delay(to_email.email)
-
-
-
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -63,10 +57,9 @@ class CourseViewSet(viewsets.ModelViewSet):
         course_subscriptions = instance.subscribe.all()
         for d in course_subscriptions:
             to_email = str(d)
-            # to_email = User.objects.get(pk=d.user_id)
             send_message(subject="Удаление курса",
                          message="Курс был удален",
-                         recipient_list=[to_email] #to_email.email
+                         recipient_list=[to_email]
                          )
 
 
@@ -146,11 +139,6 @@ class PaymentsRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = PaymentsSerializer
     queryset = Payments.objects.all()
 
-    # def get(self, request, *args, **kwargs):
-    #     return super().get(request, *args, **kwargs)
-
-
-
 
 class PaymentsListAPIView(generics.ListAPIView):
     """ Класс для вывода платежей """
@@ -159,7 +147,6 @@ class PaymentsListAPIView(generics.ListAPIView):
     serializer_class = PaymentsSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('payments_date', 'payed_lesson', 'payed_course', 'payments_ways')
-
 
 
 class SubscribeViewSet(viewsets.ModelViewSet):

@@ -20,7 +20,8 @@ def check_user():
     """ Проверка пользователя """
     users = User.objects.all()
     now = datetime.date.today()
-    for user in users:
-        if now - user.last_login > 30:
-            user.is_active = False
-            user.save()
+    if users.count() > 0:
+        for user in users:
+            if now - user.last_login > 30:
+                user.is_active = False
+                user.save()

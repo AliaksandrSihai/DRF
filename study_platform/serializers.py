@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from study_platform.models import Course, Lesson, Payments, Subscribe
 from study_platform.service import get_payment
 from study_platform.validators import lesson_url_validator
@@ -28,17 +27,12 @@ class CourseSerializer(serializers.ModelSerializer):
     lesson_count = serializers.SerializerMethodField(read_only=True)
     lessons = LessonSerializer(many=True, read_only=True)
     subscribe = SubscribeSerializer(many=True, read_only=True)
-    #subscribe = serializers.SerializerMethodField(many=True, read_only=True)
 
     def get_lesson_count(self, instance):
         return instance.lessons.count()
 
-    # def get_subscribe(self, instance):
-    #     return instance.subscribe.user.email
-
     class Meta:
         model = Course
-      #  fields = ('id', "name", "description", "price", "lesson_count", "lessons", "owner", "subscribe")
         fields = '__all__'
 
 

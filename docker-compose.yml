@@ -1,0 +1,78 @@
+version: "3"
+services:
+  postgres_db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: on-failure
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - PGHOST =${POSTGRES_HOST}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}", "-h", "${POSTGRES_HOST}", "-p", "5432"]
+      timeout: 30s
+      retries: 3
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: on-failure
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    container_name: celery
+    restart: on-failure
+    tty: true
+    command: celery -A config worker -l INFO
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_TASK_TRACK_STARTED=${CELERY_TASK_TRACK_STARTED}
+    depends_on:
+      - redis
+      - study_platform
+
+  celery_beat:
+    build: .
+    container_name: celery_beat
+    restart: on-failure
+    tty: true
+    command: celery -A config beat -l INFO
+    depends_on:
+      - redis
+      - study_platform
+
+  study_platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    container_name: study_platform
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/study_platform/
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+
+
+
+
+
